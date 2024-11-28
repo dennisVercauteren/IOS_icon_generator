@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>iOS Icon Generator</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    .theme-controls {
+      display: flex;
+      gap: 10px;
+      margin: 20px 0;
+      align-items: center;
+    }
+
+    .theme-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #444;
+      color: white;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+
+    .theme-btn.active {
+      background: #666;
+    }
+
+    #colorPicker {
+      margin-left: 10px;
+      padding: 0;
+      width: 40px;
+      height: 32px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .color-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .color-controls .theme-controls {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>iOS Icon Generator</h1>
+    <canvas id="iconCanvas" width="1024" height="1024"></canvas>
+    <div class="controls">
+      <div class="color-controls">
+        <label>Base Color:</label>
+        <div class="theme-controls">
+          <button onclick="setBaseTheme('color')" id="baseColorBtn" class="theme-btn active">Color</button>
+          <button onclick="setBaseTheme('light')" id="baseLightBtn" class="theme-btn">Light</button>
+          <button onclick="setBaseTheme('dark')" id="baseDarkBtn" class="theme-btn">Dark</button>
+        </div>
+        <input type="color" id="colorPicker" value="#3498db" onchange="updateColor(this.value)" style="display: none;">
+      </div>
+
+      <div class="color-controls">
+        <label>Icon Color:</label>
+        <div class="theme-controls">
+          <button onclick="setTheme('color')" id="colorBtn" class="theme-btn active">Color</button>
+          <button onclick="setTheme('light')" id="lightBtn" class="theme-btn">Light</button>
+          <button onclick="setTheme('dark')" id="darkBtn" class="theme-btn">Dark</button>
+        </div>
+        <input type="color" id="iconColorPicker" value="#3498db" onchange="updateIconColor(this.value)" style="display: none;">
+      </div>
+
+      <label>
+        Corner Radius
+        <input type="range" id="radiusSlider" min="0" max="512" value="125">
+      </label>
+
+      <label>
+        Grain Intensity
+        <input type="range" id="grainSlider" min="0" max="50" value="35">
+      </label>
+
+      <label>
+        Search Icon:
+        <div class="search-container">
+          <input type="text" id="iconSearch" placeholder="Search icons (e.g., Twitter, GitHub)">
+          <div id="searchResults" class="search-results"></div>
+        </div>
+      </label>
+
+      <div class="button-container">
+        <button id="downloadBtn">Save Current Icon</button>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
