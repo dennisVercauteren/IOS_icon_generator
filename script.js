@@ -130,7 +130,6 @@ function filterIcons(searchTerm) {
     displayIcons(filteredIcons); // This will reset pagination
     return filteredIcons;
 }
-
 // Handle search input
 iconSearch.addEventListener('input', (e) => {
     const searchTerm = e.target.value.trim();
@@ -524,7 +523,7 @@ async function loadIcon(title) {
         
         // Create SVG blob with current color
         const color = currentTheme === 'color' ? iconColor : 
-                     currentTheme === 'light' ? '#000000' : '#FFFFFF';
+                     currentTheme === 'light' ? '#FFFFFF' : '#000000';
         
         const coloredSvg = svgText.replace(/(<path.*?)(fill=".*?")?(\s*\/>|<\/path>)/g, 
             (match, start, fill, end) => `${start} fill="${color}"${end}`);
@@ -552,3 +551,4 @@ async function loadIcon(title) {
 
 // Initial draw
 drawIcon();
+
