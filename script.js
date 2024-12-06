@@ -171,7 +171,7 @@ let radius = 125;
 let iconScale = 50;
 let grainAmount = 35;
 let grainAmountIcon = 15;
-const borderWidth = 3;
+let borderSize = 3;
 
 // Theme variables
 let currentTheme = 'color';
@@ -397,7 +397,17 @@ function setGradient(enabled) {
     drawIcon();
 }
 
-// Modify the drawIcon function to use the gradient toggle
+// Add with other event listeners
+const borderSlider = document.getElementById('borderSlider');
+const borderValue = document.getElementById('borderValue');
+
+borderSlider.addEventListener('input', function() {
+    borderSize = parseInt(this.value);
+    borderValue.textContent = borderSize;
+    drawIcon();
+});
+
+// Update the drawIcon function to use borderSize
 function drawIcon() {
     if (!selectedIcon) return;
 
@@ -407,13 +417,22 @@ function drawIcon() {
     // Step 1: Draw background with rounded corners
     ctx.save();
     ctx.beginPath();
-    drawRoundedRectangle(ctx, 0, 0, 1024, 1024, radius);
+    
+    // Draw outer rounded rectangle for border
+    if (borderSize > 0) {
+        drawRoundedRectangle(ctx, 0, 0, 1024, 1024, radius);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fill();
+    }
+    
+    // Draw inner rounded rectangle for main background
+    drawRoundedRectangle(ctx, borderSize, borderSize, 1024 - borderSize * 2, 1024 - borderSize * 2, Math.max(0, radius - borderSize));
     ctx.clip();
 
     // Fill with base theme color
     const themeColor = getBaseThemeColor();
     ctx.fillStyle = themeColor;
-    ctx.fillRect(0, 0, 1024, 1024);
+    ctx.fillRect(borderSize, borderSize, 1024 - borderSize * 2, 1024 - borderSize * 2);
 
     if (isGradientEnabled) {
         // Create gradients
@@ -443,7 +462,7 @@ function drawIcon() {
 
             ctx.fillStyle = gradient;
             ctx.globalCompositeOperation = 'screen';
-            ctx.fillRect(0, 0, 1024, 1024);
+            ctx.fillRect(borderSize, borderSize, 1024 - borderSize * 2, 1024 - borderSize * 2);
         });
 
         ctx.globalCompositeOperation = 'source-over';
@@ -510,14 +529,14 @@ function drawIcon() {
     strokeGradient.addColorStop(0, adjustColor(borderThemeColor, 100));
     strokeGradient.addColorStop(1, adjustColor(borderThemeColor, -50));
     ctx.strokeStyle = strokeGradient;
-    ctx.lineWidth = borderWidth;
+    ctx.lineWidth = borderSize;
     drawRoundedRectangle(
         ctx,
-        borderWidth / 2,
-        borderWidth / 2,
-        1024 - borderWidth,
-        1024 - borderWidth,
-        radius - borderWidth / 2
+        borderSize / 2,
+        borderSize / 2,
+        1024 - borderSize,
+        1024 - borderSize,
+        radius - borderSize / 2
     );
     ctx.stroke();
 }
@@ -567,4 +586,13 @@ async function loadIcon(title) {
 
 // Initial draw
 drawIcon();
+
+// Add with other event listeners
+const toggleIconBrowser = document.getElementById('toggleIconBrowser');
+const iconBrowser = document.querySelector('.icon-browser');
+
+toggleIconBrowser.addEventListener('click', function() {
+    const isCollapsed = iconBrowser.classList.toggle('collapsed');
+    this.classList.toggle('collapsed', isCollapsed);
+});
 
