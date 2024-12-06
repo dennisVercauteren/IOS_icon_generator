@@ -2,8 +2,6 @@
 
 A web-based tool for creating beautiful iOS-style app icons with gradients, shadows, and customizable designs.
 
-![iOS Icon Studio](preview.png)
-
 ## Features
 
 - 🎨 Create iOS-style app icons with modern design
@@ -21,7 +19,7 @@ A web-based tool for creating beautiful iOS-style app icons with gradients, shad
 
 ## Usage
 
-1. Visit [iOS Icon Studio](https://your-url-here.com)
+1. Visit [iOS Icon Studio](https://iconstudio.kubuz.net)
 2. Choose an icon from the library
 3. Customize your settings:
    - Adjust colors for background and icon
@@ -79,7 +77,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Author
 
-Created by [Your Name]
+Created by Kubuz
 
 ## Support
 
