@@ -386,7 +386,21 @@ function addGrain() {
     ctx.putImageData(imageData, 0, 0);
 }
 
+// Add with other variables at the top
+let isGradientEnabled = true;
+
+// Replace the toggleGradient function with this:
+function setGradient(enabled) {
+    isGradientEnabled = enabled;
+    document.getElementById('gradientOnBtn').classList.toggle('active', enabled);
+    document.getElementById('gradientOffBtn').classList.toggle('active', !enabled);
+    drawIcon();
+}
+
+// Modify the drawIcon function to use the gradient toggle
 function drawIcon() {
+    if (!selectedIcon) return;
+
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -397,41 +411,43 @@ function drawIcon() {
     ctx.clip();
 
     // Fill with base theme color
-    ctx.fillStyle = getBaseThemeColor();
+    const themeColor = getBaseThemeColor();
+    ctx.fillStyle = themeColor;
     ctx.fillRect(0, 0, 1024, 1024);
 
-    // Create gradients
-    const spots = [
-        { x: 256, y: 256 },
-        { x: 768, y: 256 },
-        { x: 256, y: 768 },
-        { x: 768, y: 768 }
-    ];
+    if (isGradientEnabled) {
+        // Create gradients
+        const spots = [
+            { x: 256, y: 256 },
+            { x: 768, y: 256 },
+            { x: 256, y: 768 },
+            { x: 768, y: 768 }
+        ];
 
-    const themeColor = getBaseThemeColor();
-    const colors = [
-        adjustColor(themeColor, 70),
-        themeColor,
-        themeColor,
-        adjustColor(themeColor, -100)
-    ];
-    const gradientRadius = 1024;
+        const colors = [
+            adjustColor(themeColor, 70),
+            themeColor,
+            themeColor,
+            adjustColor(themeColor, -100)
+        ];
+        const gradientRadius = 1024;
 
-    spots.forEach((spot, i) => {
-        let gradient = ctx.createRadialGradient(
-            spot.x, spot.y, 0,
-            spot.x, spot.y, gradientRadius
-        );
+        spots.forEach((spot, i) => {
+            let gradient = ctx.createRadialGradient(
+                spot.x, spot.y, 0,
+                spot.x, spot.y, gradientRadius
+            );
+            
+            gradient.addColorStop(0, colors[i]);
+            gradient.addColorStop(1, 'transparent');
 
-        gradient.addColorStop(0, colors[i]);
-        gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.globalCompositeOperation = 'screen';
+            ctx.fillRect(0, 0, 1024, 1024);
+        });
 
-        ctx.fillStyle = gradient;
-        ctx.globalCompositeOperation = 'screen';
-        ctx.fillRect(0, 0, 1024, 1024);
-    });
-
-    ctx.globalCompositeOperation = 'source-over';
+        ctx.globalCompositeOperation = 'source-over';
+    }
 
     // Draw the icon if selected
     if (selectedIcon) {

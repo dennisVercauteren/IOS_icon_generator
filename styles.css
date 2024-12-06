@@ -128,6 +128,7 @@ h1 {
     color: var(--text-primary);
     padding-left: 36px;
     width: 100%;
+    background-color: var(--surface-color);
 }
 
 #iconSearch:hover {
@@ -141,7 +142,7 @@ h1 {
 }
 
 .library-select {
-    background-color: var(--input-background);
+    background-color: var(--surface-color);
     color: var(--text-primary);
     border: 1px solid var(--input-border);
     border-radius: var(--radius-sm);
