@@ -2,7 +2,7 @@
 
 A web-based tool for creating beautiful iOS-style app icons with gradients, shadows, and customizable designs.
 
-![Screenshot]([images/example.png](https://raw.githubusercontent.com/dennisVercauteren/IOS_icon_generator/refs/heads/main/Screenshot.png))
+![Screenshot](https://raw.githubusercontent.com/dennisVercauteren/IOS_icon_generator/refs/heads/main/Screenshot.png)
 
 ## Features
 
