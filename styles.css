@@ -752,3 +752,63 @@ input[type="range"] {
         margin: 0 auto !important;
     }
 }
+
+.mobile-top-bar {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-top-bar {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        background: var(--surface-color);
+        padding: var(--spacing-sm) var(--spacing-md);
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+        height: 48px;
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .mobile-favicon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .mobile-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    body {
+        padding: var(--spacing-sm);
+        padding-top: calc(48px + env(safe-area-inset-top, 20px));
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+    }
+
+    .main-content {
+        width: 100%;
+        position: sticky;
+        top: calc(48px + env(safe-area-inset-top, 20px));
+        z-index: 10;
+        background: var(--background-color);
+        padding: var(--spacing-sm);
+        padding-bottom: var(--spacing-md);
+        margin-bottom: 60px;
+    }
+
+    .app-layout {
+        flex-direction: column;
+        height: auto;
+        gap: var(--spacing-md);
+        padding-top: var(--spacing-md);
+    }
+
+    /* ... rest of mobile styles ... */
+}
