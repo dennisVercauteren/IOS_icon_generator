@@ -430,26 +430,93 @@ scaleSlider.addEventListener('input', (e) => {
     drawIcon();
 });
 
+// Function to generate a random string
+function generateRandomString(length = 6) {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    return Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+
+// Function to sanitize filename for cross-platform compatibility
+function sanitizeFilename(filename) {
+    // Remove invalid characters and replace spaces with underscores
+    return filename
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+        .replace(/\s+/g, '_')
+        .replace(/^\.+/, ''); // Remove leading periods
+}
+
+// Function to detect iOS device
+function isIOS() {
+    return [
+        'iPad Simulator',
+        'iPhone Simulator',
+        'iPod Simulator',
+        'iPad',
+        'iPhone',
+        'iPod'
+    ].includes(navigator.platform)
+    || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+}
+
+// Function to convert canvas to blob
+function canvasToBlob(canvas) {
+    return new Promise((resolve) => {
+        canvas.toBlob((blob) => {
+            resolve(blob);
+        }, 'image/png', 1.0);
+    });
+}
+
 // Function to trigger download
-document.getElementById('downloadBtn').addEventListener('click', function () {
+document.getElementById('downloadBtn').addEventListener('click', async function () {
     if (!selectedIcon || !selectedIcon.dataset || !selectedIcon.dataset.title) {
         console.warn('No icon selected');
         return;
     }
 
     const iconTitle = selectedIcon.dataset.title;
+    const randomSuffix = generateRandomString();
+    const sanitizedTitle = sanitizeFilename(iconTitle);
+    const filename = `${sanitizedTitle}_${randomSuffix}.png`;
+
+    if (isIOS()) {
+        try {
+            // Get blob from canvas
+            const blob = await canvasToBlob(canvas);
+            const file = new File([blob], filename, { type: 'image/png' });
+
+            // Use Web Share API
+            if (navigator.share) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Save Icon',
+                    text: 'Save your iOS icon'
+                });
+            } else {
+                // Fallback to regular download if Web Share API is not available
+                downloadFile(filename);
+            }
+        } catch (error) {
+            console.error('Error sharing:', error);
+            // Fallback to regular download
+            downloadFile(filename);
+        }
+    } else {
+        // Regular download for non-iOS devices
+        downloadFile(filename);
+    }
+});
+
+// Function to handle regular file download
+function downloadFile(filename) {
     const link = document.createElement('a');
-    const filename = `${iconTitle}.png`;
-
-    const imageData = canvas.toDataURL('image/png', 0.8);
-
+    const imageData = canvas.toDataURL('image/png', 1.0);
     link.download = filename;
     link.href = imageData;
-
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-});
+}
 
 // Drawing functions
 function drawRoundedRectangle(ctx, x, y, width, height, radius) {
