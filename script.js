@@ -11,9 +11,83 @@ const iconsGrid = document.getElementById('iconsGrid');
 const iconSearch = document.getElementById('iconSearch');
 const iconLibrarySelect = document.getElementById('iconLibrary');
 
+// Cache for the default SVG content and color state
+let cachedAppleSvg = null;
+let lastUsedColor = null;
+let updateQueued = false;
+
+// Load default apple icon
+async function loadDefaultIcon() {
+    try {
+        if (!cachedAppleSvg) {
+            const response = await fetch('apple.svg');
+            let svgContent = await response.text();
+            // Modify the SVG content to make it color-changeable
+            svgContent = svgContent.replace(/<svg/, '<svg fill="currentColor"');
+            svgContent = svgContent.replace(/<path/, '<path fill="#000000"');
+            cachedAppleSvg = svgContent;
+        }
+        
+        // Create a new image and wait for it to load
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                selectedIcon = img;
+                baseColor = '#000000';  // Set default color to black
+                iconColor = baseColor;
+                lastUsedColor = baseColor;
+                
+                // Update color pickers
+                const colorPicker = document.getElementById('colorPicker');
+                const iconColorPicker = document.getElementById('iconColorPicker');
+                if (colorPicker) colorPicker.value = baseColor;
+                if (iconColorPicker) iconColorPicker.value = iconColor;
+                
+                drawIcon();
+                resolve();
+            };
+            img.onerror = reject;
+            img.dataset.title = 'Default Apple Icon';
+            const coloredSvg = cachedAppleSvg.replace(/currentColor/g, iconColor);
+            img.src = 'data:image/svg+xml,' + encodeURIComponent(coloredSvg);
+        });
+    } catch (error) {
+        console.error('Error loading default icon:', error);
+    }
+}
+
+// Debounced update function for smoother color changes
+function debouncedUpdate(color) {
+    if (!updateQueued && lastUsedColor !== color) {
+        updateQueued = true;
+        requestAnimationFrame(() => {
+            const coloredSvg = cachedAppleSvg.replace(/currentColor/g, color);
+            const img = new Image();
+            img.onload = () => {
+                selectedIcon = img;
+                lastUsedColor = color;
+                drawIcon();
+                updateQueued = false;
+            };
+            img.dataset.title = 'Default Apple Icon';
+            img.src = 'data:image/svg+xml,' + encodeURIComponent(coloredSvg);
+        });
+    }
+}
+
+// Update default icon with a new color (optimized)
+function updateDefaultIconWithColor(color) {
+    if (selectedIcon && selectedIcon.dataset.title === 'Default Apple Icon' && cachedAppleSvg) {
+        debouncedUpdate(color);
+    }
+}
+
 // Load both icon libraries
 async function loadIconLibraries() {
     try {
+        // Load the default apple icon first
+        await loadDefaultIcon();
+
         const [brandsResponse, remixResponse] = await Promise.all([
             fetch('simple-icons.json'),
             fetch('remix-icons.json')
@@ -28,17 +102,10 @@ async function loadIconLibraries() {
         remixData = remixJson.icons;
         iconsData = brandsData; // Default to brands
 
-        // Select a random icon on load
-        const randomIcon = brandsData[Math.floor(Math.random() * brandsData.length)];
-
         console.log(`Loaded ${brandsData.length} brand icons and ${remixData.length} remix icons`);
 
         // Display icons
         displayIcons(iconsData);
-
-        // Load and display the random icon
-        await loadIcon(randomIcon.title);
-
     } catch (error) {
         console.error('Error loading icons:', error);
     }
@@ -173,7 +240,40 @@ let grainAmount = 35;
 let grainAmountIcon = 15;
 let borderSize = 3;
 
-// Theme variables
+// App appearance theme handling
+let appTheme = 'light';
+
+function toggleAppearance() {
+    appTheme = appTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', appTheme);
+    localStorage.setItem('appearance', appTheme);
+    updateAppearanceButtonText();
+}
+
+function updateAppearanceButtonText() {
+    const toggleBtn = document.getElementById('themeToggle');
+    if (toggleBtn) {
+        toggleBtn.querySelector('.theme-toggle-text').textContent = 
+            `Appearance${appTheme === 'light' ? 'Dark' : 'Light'}`;
+    }
+}
+
+// Initialize appearance
+document.addEventListener('DOMContentLoaded', () => {
+    // Load saved appearance preference
+    const savedAppearance = localStorage.getItem('appearance') || 'light';
+    appTheme = savedAppearance;
+    document.documentElement.setAttribute('data-theme', appTheme);
+    updateAppearanceButtonText();
+
+    // Add appearance toggle handler
+    const appearanceToggle = document.getElementById('themeToggle');
+    if (appearanceToggle) {
+        appearanceToggle.addEventListener('click', toggleAppearance);
+    }
+});
+
+// Icon theme variables (keep these separate)
 let currentTheme = 'color';
 let currentBaseTheme = 'light';
 const lightColor = '#f0f0f0';
@@ -199,14 +299,20 @@ function getIconColor() {
 }
 
 function updateActiveButton() {
-    document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+    // Remove active class from icon color theme buttons only
+    const iconColorButtons = document.querySelectorAll('#colorBtn, #lightBtn, #darkBtn');
+    iconColorButtons.forEach(btn => btn.classList.remove('active'));
     document.getElementById(currentTheme + 'Btn').classList.add('active');
 }
 
 function updateBaseActiveButton() {
-    document.querySelectorAll('.color-controls .theme-btn').forEach(btn => btn.classList.remove('active'));
+    // Remove active class from base color theme buttons only
+    const baseColorButtons = document.querySelectorAll('#baseColorBtn, #baseLightBtn, #baseDarkBtn');
+    baseColorButtons.forEach(btn => btn.classList.remove('active'));
     document.getElementById('base' + currentBaseTheme.charAt(0).toUpperCase() + currentBaseTheme.slice(1) + 'Btn').classList.add('active');
 }
+
+// ... rest of the code stays the same ...
 
 function setBaseTheme(theme) {
     currentBaseTheme = theme;
@@ -237,22 +343,31 @@ function setTheme(theme) {
     }
 }
 
+// Modify the updateColor function to use the optimized update
 function updateColor(color) {
     baseColor = color;
     if (currentBaseTheme === 'color') {
-        drawIcon();
+        if (selectedIcon && selectedIcon.dataset.title === 'Default Apple Icon') {
+            updateDefaultIconWithColor(color);
+        } else {
+            drawIcon();
+        }
     }
 }
 
 function updateIconColor(color) {
     iconColor = color;
-    if (currentTheme === 'color' && selectedIcon && selectedIcon.dataset && selectedIcon.dataset.title) {
-        loadIcon(selectedIcon.dataset.title)
-            .then(img => {
-                selectedIcon = img;
-                drawIcon();
-            })
-            .catch(err => console.error('Error updating icon color:', err));
+    if (currentTheme === 'color') {
+        if (selectedIcon && selectedIcon.dataset.title === 'Default Apple Icon') {
+            updateDefaultIconWithColor(color);
+        } else if (selectedIcon && selectedIcon.dataset && selectedIcon.dataset.title) {
+            loadIcon(selectedIcon.dataset.title)
+                .then(img => {
+                    selectedIcon = img;
+                    drawIcon();
+                })
+                .catch(err => console.error('Error loading icon:', err));
+        }
     }
 }
 
@@ -407,7 +522,7 @@ borderSlider.addEventListener('input', function() {
     drawIcon();
 });
 
-// Update the drawIcon function to use borderSize
+// Keep the original drawIcon function with all effects
 function drawIcon() {
     if (!selectedIcon) return;
 
@@ -507,12 +622,6 @@ function drawIcon() {
 
         // Draw the processed icon onto the main canvas
         ctx.drawImage(iconCanvas, 0, 0);
-
-        // Reset shadow settings
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
     }
 
     ctx.restore();
@@ -521,23 +630,13 @@ function drawIcon() {
     addGrain();
 
     // Step 5: Add gradient outline
-    let strokeGradient = ctx.createLinearGradient(
-        0, 0,
-        1024, 1024
-    );
+    let strokeGradient = ctx.createLinearGradient(0, 0, 1024, 1024);
     const borderThemeColor = getBaseThemeColor();
     strokeGradient.addColorStop(0, adjustColor(borderThemeColor, 100));
     strokeGradient.addColorStop(1, adjustColor(borderThemeColor, -50));
     ctx.strokeStyle = strokeGradient;
     ctx.lineWidth = borderSize;
-    drawRoundedRectangle(
-        ctx,
-        borderSize / 2,
-        borderSize / 2,
-        1024 - borderSize,
-        1024 - borderSize,
-        radius - borderSize / 2
-    );
+    drawRoundedRectangle(ctx, borderSize / 2, borderSize / 2, 1024 - borderSize, 1024 - borderSize, radius - borderSize / 2);
     ctx.stroke();
 }
 
